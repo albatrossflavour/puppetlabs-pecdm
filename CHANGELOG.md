@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 **Features**
 
+- Proxmox VE provider (`provider=proxmox`), using the new [terraform-proxmox-pe_arch](https://github.com/albatrossflavour/terraform-proxmox-pe_arch) module. VMs use DHCP and pecdm connects to the address the guest agent reports. `cloud_region` is required and lists the Proxmox nodes to use
 - Default PE version is now 2025.11.3 for provision, deploy and upgrade (was 2019.8.10 and 2021.7.2)
 - Supports Bolt 4 and 5, via peadm 3.38.3 ([#117](https://github.com/puppetlabs/puppetlabs-pecdm/issues/117))
 

@@ -8,10 +8,14 @@
 #   be determined by provider
 #
 plan pecdm::subplans::destroy(
-  Enum['google', 'aws', 'azure']  $provider,
-  String[1]                       $cloud_region = $provider ? { 'azure' => 'westus2' ,'aws' => 'us-west-2', default => 'us-west1' }
+  Enum['google', 'aws', 'azure', 'proxmox']  $provider,
+  Optional[String[1]]             $cloud_region = $provider ? { 'azure' => 'westus2' ,'aws' => 'us-west-2', 'proxmox' => undef, default => 'us-west1' }
 ) {
   out::message("Destroying Puppet Enterprise deployment on ${provider}")
+
+  if $provider == 'proxmox' and !$cloud_region {
+    fail_plan('The Proxmox provider needs cloud_region set to a comma-separated list of Proxmox node names, for example cloud_region=pve1,pve2')
+  }
 
   $tf = pecdm::terraform_dirs($provider)
   $tf_dir = $tf['code_dir']
@@ -24,7 +28,7 @@ plan pecdm::subplans::destroy(
     <% unless $cloud_region == undef { -%>
     region        = "<%= $cloud_region %>"
     <% } -%>
-    <% if $provider == 'google' { -%>
+    <% if $provider in ['google', 'proxmox'] { -%>
     destroy        = true
     <% } -%>
     # Required parameters which values are irrelevant on destroy

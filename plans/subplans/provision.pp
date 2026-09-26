@@ -109,11 +109,11 @@ plan pecdm::subplans::provision(
   Boolean                                       $replica                = false,
   Boolean                                       $native_ssh             = false,
   # The final three parameters depend on the value of $provider, to do magic
-  Enum['google', 'aws', 'azure']                $provider,
-  String[1]                                     $project                = $provider ? { 'aws' => 'pecdm', default => undef },
-  String[1]                                     $ssh_user               = $provider ? { 'aws' => 'ec2-user', default => undef },
-  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', 'aws' => undef, 'google' => undef }, # lint:ignore:140chars
-  String[1]                                     $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' } # lint:ignore:140chars
+  Enum['google', 'aws', 'azure', 'proxmox']                $provider,
+  String[1]                                     $project                = $provider ? { 'aws' => 'pecdm', 'proxmox' => 'pecdm', default => undef },
+  String[1]                                     $ssh_user               = $provider ? { 'aws' => 'ec2-user', 'proxmox' => 'pecdm', default => undef },
+  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', default => undef }, # lint:ignore:140chars
+  Optional[String[1]]                           $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', 'proxmox' => undef, default => 'us-west1' } # lint:ignore:140chars
 ) {
   if $provider == 'google' {
     if $subnet.is_a(Array) {
@@ -135,6 +135,21 @@ plan pecdm::subplans::provision(
       fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
     }
 
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] { # lint:ignore:140chars
+      fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
+    }
+
+    $_instance_image         = $instance_image
+    $_windows_instance_image = undef # While provider doesn't support Windows Agent nodes, ensure this is always undef
+  }
+
+  if $provider == 'proxmox' {
+    unless $cloud_region {
+      fail_plan('The Proxmox provider needs cloud_region set to a comma-separated list of Proxmox node names, for example cloud_region=pve1,pve2')
+    }
+    if $subnet or $subnet_project {
+      fail_plan('Proxmox does not use subnet or subnet_project. Set bridge and vlan_id with extra_terraform_vars')
+    }
     if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] { # lint:ignore:140chars
       fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
     }
@@ -274,6 +289,7 @@ plan pecdm::subplans::provision(
               'windows_node' => "azurerm_windows_virtual_machine.${i}",
               default        => "azurerm_linux_virtual_machine.${i}",
             },
+            'proxmox' => "proxmox_virtual_environment_vm.${i}",
           },
           'target_mapping' => $provider ? {
             'google' => {
@@ -296,7 +312,13 @@ plan pecdm::subplans::provision(
                 'private' => 'private_ip_address',
                 default   => 'public_ip_address',
               },
-            }
+            },
+            # Proxmox VMs have one address, reported by the guest agent. Index
+            # 0 is the loopback interface, so the first real one is 1
+            'proxmox' => {
+              'name' => 'name',
+              'uri'  => 'ipv4_addresses.1.0',
+            },
           },
       })
     }

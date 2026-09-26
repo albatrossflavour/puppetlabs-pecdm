@@ -4,16 +4,16 @@ plan pecdm::upgrade(
   Peadm::Pe_version                        $version            = '2025.11.3',
   Boolean                                  $native_ssh         = false,
   Enum['private', 'public']                $ssh_ip_mode        = 'public',
-  Optional[Enum['google', 'aws', 'azure']] $provider           = undef,
+  Optional[Enum['google', 'aws', 'azure', 'proxmox']] $provider           = undef,
   Hash                                     $extra_peadm_params = {},
-  String[1]                                $ssh_user           = $provider ? { 'aws' => 'ec2-user', default => undef },
+  String[1]                                $ssh_user           = $provider ? { 'aws' => 'ec2-user', 'proxmox' => 'pecdm', default => undef },
 ) {
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local' })
 
   if $provider {
     $_provider = $provider
   } else {
-    $detected_provider = ['google', 'aws', 'azure'].map |String $provider| {
+    $detected_provider = ['google', 'aws', 'azure', 'proxmox'].map |String $provider| {
       $tf = pecdm::terraform_dirs($provider)
       $terraform_output = run_task('terraform::output', 'localhost',
         dir   => $tf['code_dir'],
@@ -72,6 +72,7 @@ plan pecdm::upgrade(
             'google' => "google_compute_instance.${i}",
             'aws'    => "aws_instance.${i}",
             'azure'  => "azurerm_linux_virtual_machine.${i}",
+            'proxmox' => "proxmox_virtual_environment_vm.${i}",
           },
           'target_mapping' => $_provider ? {
             'google' => {
@@ -94,7 +95,11 @@ plan pecdm::upgrade(
                 'private' => 'private_ip_address',
                 default   => 'public_ip_address',
               },
-            }
+            },
+            'proxmox' => {
+              'name' => 'name',
+              'uri'  => 'ipv4_addresses.1.0',
+            },
           },
       })
     }

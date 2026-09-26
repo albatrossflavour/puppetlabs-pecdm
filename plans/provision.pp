@@ -144,7 +144,7 @@ plan pecdm::provision(
   Boolean                                       $write_inventory        = true,
   Boolean                                       $native_ssh             = pecdm::is_windows(),
   # The final three parameters depend on the value of $provider, to do magic
-  Enum['google', 'aws', 'azure']                $provider,
+  Enum['google', 'aws', 'azure', 'proxmox']                $provider,
   Optional[String[1]]                           $project                = undef,
   Optional[String[1]]                           $ssh_user               = undef,
   Optional[String[1]]                           $cloud_region           = undef

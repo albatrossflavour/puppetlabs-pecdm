@@ -1,5 +1,5 @@
 <%- | Enum['private', 'public']      $ssh_ip_mode,
-      Enum['google', 'aws', 'azure'] $provider,
+      Enum['google', 'aws', 'azure', 'proxmox'] $provider,
       Boolean                        $native_ssh = false,
 | -%>
 <%- case $provider { -%>
@@ -20,6 +20,9 @@
       <%- 'private' => 'private_ip_address', -%>
       <%- 'public'  => 'public_ip_address' -%>
     <%- } -%>
+  <%- } -%>
+  <%- 'proxmox': { -%>
+    <%- $uri_param = 'ipv4_addresses.1.0' -%>
   <%- } -%>
 <%- } -%>
 ---
@@ -95,6 +98,30 @@ groups:
           name: tags.internalDNS
           uri: <%= $uri_param %>
     <%- } -%>
+    <%- if $provider == 'proxmox' { -%>
+      - _plugin: terraform
+        dir: .terraform/proxmox_pe_arch
+        resource_type: proxmox_virtual_environment_vm.server
+        target_mapping:
+          name: name
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'proxmox' { -%>
+      - _plugin: terraform
+        dir: .terraform/proxmox_pe_arch
+        resource_type: proxmox_virtual_environment_vm.compiler
+        target_mapping:
+          name: name
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'proxmox' { -%>
+      - _plugin: terraform
+        dir: .terraform/proxmox_pe_arch
+        resource_type: proxmox_virtual_environment_vm.psql
+        target_mapping:
+          name: name
+          uri: <%= $uri_param %>
+    <%- } -%>
   - name: agent_nodes
     targets:
     <%- if $provider == 'google' { -%>
@@ -121,6 +148,14 @@ groups:
           name: tags.internalDNS
           uri: <%= $uri_param %>
     <%- } -%>
+    <%- if $provider == 'proxmox' { -%>
+      - _plugin: terraform
+        dir: .terraform/proxmox_pe_arch
+        resource_type: proxmox_virtual_environment_vm.node
+        target_mapping:
+          name: name
+          uri: <%= $uri_param %>
+    <%- } -%>
   - name: windows_agent_nodes
     targets:
     <%- if $provider == 'google' { -%>
@@ -145,6 +180,14 @@ groups:
         resource_type: azurerm_windows_virtual_machine.windows_node
         target_mapping:
           name: tags.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'proxmox' { -%>
+      - _plugin: terraform
+        dir: .terraform/proxmox_pe_arch
+        resource_type: proxmox_virtual_environment_vm.windows_node
+        target_mapping:
+          name: name
           uri: <%= $uri_param %>
     <%- } -%>
     config:

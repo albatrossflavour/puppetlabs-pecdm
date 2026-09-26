@@ -11,7 +11,7 @@
 #   instead of Ruby's net-ssh library
 #
 plan pecdm::utils::inventory_yaml(
-  Enum['google', 'aws', 'azure'] $provider,
+  Enum['google', 'aws', 'azure', 'proxmox'] $provider,
   Enum['private', 'public']      $ssh_ip_mode,
   Boolean                        $native_ssh = false,
 ) {

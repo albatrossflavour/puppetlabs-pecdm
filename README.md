@@ -55,6 +55,13 @@ Types of things you'll be paying your cloud provider for
 * [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 * [AZ Login](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure)
 
+#### Deploying upon Proxmox VE
+
+* A VM template to clone with qemu-guest-agent and cloud-init, for example from [goodmountain](https://github.com/albatrossflavour/goodmountain). Pass its name as `instance_image`
+* DHCP on the VMs' network that registers each VM's name in DNS, so the PE nodes can resolve each other
+* An API token exported as `PROXMOX_VE_ENDPOINT` and `PROXMOX_VE_API_TOKEN` (and `PROXMOX_VE_INSECURE=true` for a self-signed certificate)
+* `cloud_region` set to a comma-separated list of the Proxmox nodes to place VMs on
+
 #### Common Requirements
 * [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
 * [Git Installed](https://git-scm.com/downloads)
@@ -127,6 +134,16 @@ $ ssh-add
 
 For more information about setting environment variables, please take a look at the detailed instructions on the [scripts/README](scripts/README.md) file
 
+#### Deploy large architecture on Proxmox VE
+
+Storage, bridge and VLAN are Proxmox-specific, so they go through `extra_terraform_vars`. See the [provider module](https://github.com/albatrossflavour/terraform-proxmox-pe_arch) for every option.
+
+```bash
+bolt plan run pecdm::provision provider=proxmox architecture=large compiler_count=2 \
+  cloud_region=pve1,pve2,pve3 instance_image=template-Rocky-9 ssh_pub_key_file=~/.ssh/id_ed25519.pub \
+  extra_terraform_vars='{"datastore_id": "ceph", "bridge": "vmbr1", "vlan_id": 6, "full_clone": false}'
+```
+
 ### Destroying examples
 
 #### Destroy GCP stack
@@ -140,6 +157,10 @@ The number of options required are reduced when destroying a stack. Pass the sam
 The number of options required are reduced when destroying a stack. Pass the same `cloud_region` used to provision it, or the destroy looks in the default region and fails ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85))
 
 `bolt plan run pecdm::destroy provider=aws cloud_region=<region>`
+
+#### Destroy Proxmox VE stack
+
+`bolt plan run pecdm::destroy provider=proxmox cloud_region=<nodes>`
 
 ### Upgrading examples
 
