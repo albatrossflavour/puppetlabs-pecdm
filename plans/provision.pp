@@ -168,14 +168,22 @@ plan pecdm::provision(
     )
   }
 
-  # PE 2025 rejects console passwords under 12 characters, but only at the very
-  # end of the install. Check now, before anything is built.
+  # PE 2025 enforces its password complexity rules only at the very end of the
+  # install, after everything is built and configured. Check PE's default rules
+  # now, before anything is built.
   $_console_password_plain = $_console_password ? {
     Sensitive => $_console_password.unwrap,
     default   => $_console_password,
   }
-  if $_console_password_plain.length < 12 {
-    fail_plan('console_password must be at least 12 characters. Puppet Enterprise rejects shorter passwords at the end of the install')
+  $_password_problems = {
+    'be at least 12 characters'           => $_console_password_plain.length >= 12,
+    'contain an uppercase letter'          => $_console_password_plain =~ /[A-Z]/,
+    'contain a lowercase letter'           => $_console_password_plain =~ /[a-z]/,
+    'contain a number'                     => $_console_password_plain =~ /[0-9]/,
+    'contain a special character (e.g. @)' => $_console_password_plain =~ /[^A-Za-z0-9]/,
+  }.filter |$rule, $ok| { !$ok }.keys
+  unless $_password_problems.empty {
+    fail_plan("console_password must ${_password_problems.join(', ')}. These are Puppet Enterprise's default rules, and PE only enforces them at the end of the install") # lint:ignore:140chars
   }
 
   if $windows_node_count {
