@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ruby 3.2 matches the Puppet 8 / PDK 3 toolchain. Gems come from
+      # rubygems.org: the Gemfile only switches to Puppet's private gem source
+      # when PUPPET_FORGE_TOKEN is set.
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Validate (syntax, lint, metadata, rubocop)
+        run: bundle exec rake syntax lint metadata_lint rubocop
+
+      - name: Unit tests
+        run: bundle exec rake spec

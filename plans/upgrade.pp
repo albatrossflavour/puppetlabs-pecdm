@@ -101,7 +101,7 @@ plan pecdm::upgrade(
   }
 
   $inventory.each |$k, $v| { $v.each |$target| {
-      Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
+      Target.new(stdlib::merge($target, $target_config)).add_to_group('peadm_nodes')
   } }
 
   $peadm_configs = run_task('peadm::get_peadm_config', [

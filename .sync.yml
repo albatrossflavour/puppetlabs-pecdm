@@ -1,9 +1,11 @@
 ---
 .gitignore:
   required:
-    - '---/inventory.yaml'
-Gemfile:
-  required:
-    ':development':
-      - gem: 'bolt'
-        version: '>= 3.10.0'
+    # Terraform state for provisioned clusters. Never commit it.
+    - '/.terraform/'
+    # Written by pecdm::provision and pecdm::utils::inventory_yaml
+    - '/inventory.yaml'
+# Puppet-internal gating for PRs from forks. It needs pull_request_target with
+# write access and doesn't apply here.
+.github/workflows/fork_ci_label_guard.yml:
+  delete: true

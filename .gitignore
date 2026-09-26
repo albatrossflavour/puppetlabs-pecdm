@@ -19,19 +19,18 @@
 /spec/fixtures/modules/*
 /tmp/
 /vendor/
+/.vendor/
 /convert_report.txt
 /update_report.txt
 .DS_Store
 .project
 .envrc
+/inventory.yaml
 /spec/fixtures/litmus_inventory.yaml
-.modules
 .resource_types
-# Terraform state for provisioned clusters
-/.terraform/
-
-# Bolt run caches
-.plan_cache.json
+.modules
 .task_cache.json
+.plan_cache.json
 .rerun.json
 bolt-debug.log
+/.terraform/
