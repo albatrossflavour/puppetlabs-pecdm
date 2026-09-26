@@ -80,18 +80,6 @@ disable_lb      = "<%= $disable_lb %>"
 <% } -%>
 <%- unless $extra_terraform_vars.empty { -%>
   <%- $extra_terraform_vars.each | String $key, $value | { -%>
-    <%- if $value =~ String or $value =~ Boolean { -%>
-<%= $key %> = "<%= $value %>"
-    <%- } elsif $value =~ Integer { -%>
-<%= $key %> = <%= $value %>
-    <%- } elsif $value =~ Array { -%>
-<%= $key %> = <%= String($value).regsubst('\'', '"', 'G')  %>
-    <%- } elsif $value =~ Hash { -%>
-<%= $key %> = {
-      <%- $value.each | String $k, String $v | { -%>
-  "<%= $k %>" = "<%= $v %>"
-      <%- } -%>
-}
-    <%- } -%>
+<%= $key %> = <%= stdlib::to_json($value) %>
   <%- } -%>
 <%- } -%>
