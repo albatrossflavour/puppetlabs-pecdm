@@ -60,6 +60,12 @@
 # @param firewall_allow
 #   IPv4 address subnets that should have access to PE through firewall
 #
+# @param dns_wait_timeout
+#   Proxmox only. Seconds to wait, after the VMs are built, for every node's
+#   name to resolve from the primary. The Proxmox provider relies on DHCP to
+#   register names in DNS, which can lag well behind the VMs coming up, and
+#   peadm needs the nodes to resolve each other. 0 skips the wait
+#
 # @param extra_terraform_vars
 #   The pecdm plan does not expose all variables defined by supporting Terraform
 #   modules, if others are needed then pass a hash
@@ -106,6 +112,7 @@ plan pecdm::subplans::provision(
   Enum['private', 'public']                     $lb_ip_mode             = 'private',
   Array                                         $firewall_allow         = [],
   Hash                                          $extra_terraform_vars   = {},
+  Integer[0]                                    $dns_wait_timeout       = 1800,
   Boolean                                       $replica                = false,
   Boolean                                       $native_ssh             = false,
   # The final three parameters depend on the value of $provider, to do magic
@@ -333,6 +340,32 @@ plan pecdm::subplans::provision(
         Target.new($target.stdlib::merge($target_config))
       }
   } }.flatten
+
+  # Proxmox VMs get their names into DNS through DHCP registration, which can
+  # lag well behind the VMs themselves. peadm addresses nodes by name, so wait
+  # until the primary can resolve every node. getent exits non-zero while any
+  # name is missing. Cloud providers resolve internal names immediately.
+  if $provider == 'proxmox' and $dns_wait_timeout > 0 {
+    $primary = get_target(getvar('inventory.server.0.name'))
+    $names   = $pecdm_targets.map |$t| { $t.name }.join(' ')
+    $interval = 15
+    wait_until_available($primary, wait_time => 300)
+    out::message("Waiting up to ${dns_wait_timeout}s for DNS to resolve: ${names}")
+    $resolved = range(0, $dns_wait_timeout / $interval).any |$attempt| {
+      $check = run_command("getent hosts ${names}", $primary, '_catch_errors' => true)
+      if $check.ok {
+        true
+      } else {
+        ctrl::sleep($interval)
+        false
+      }
+    }
+    unless $resolved {
+      $missing = run_command("for n in ${names}; do getent hosts \$n >/dev/null || echo \$n; done", $primary).first.value['stdout']
+      fail_plan("These names still don't resolve from the primary after ${dns_wait_timeout}s: ${missing.split('\n').join(', ')}. Check that DHCP registers them in DNS, or raise dns_wait_timeout") # lint:ignore:140chars
+    }
+    out::message('All node names resolve')
+  }
 
   $results = {
     'pe_inventory'            => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node' and $type != 'windows_node') }, # lint:ignore:140chars

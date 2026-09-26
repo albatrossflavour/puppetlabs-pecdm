@@ -141,8 +141,10 @@ Storage, bridge and VLAN are Proxmox-specific, so they go through `extra_terrafo
 ```bash
 bolt plan run pecdm::provision provider=proxmox architecture=large compiler_count=2 \
   cloud_region=pve1,pve2,pve3 instance_image=template-Rocky-9 ssh_pub_key_file=~/.ssh/id_ed25519.pub \
-  extra_terraform_vars='{"datastore_id": "ceph", "bridge": "vmbr1", "vlan_id": 6, "full_clone": false}'
+  extra_terraform_vars='{"datastore_id": "ceph", "bridge": "vmbr1", "vlan_id": 6, "full_clone": false, "domain_name": "example.com"}'
 ```
+
+Set `domain_name` so the VMs get fully qualified names. After the VMs boot, pecdm waits (up to `dns_wait_timeout`, 30 minutes by default) until the primary can resolve every node's name, because peadm addresses the nodes by name. Something outside pecdm has to put those names into DNS, whether that's your DHCP server or a sync job reading the Proxmox API.
 
 ### Destroying examples
 

@@ -79,6 +79,12 @@
 #   The pecdm plan does not expose all parameters available to peadm, if others
 #   are needed then pass a hash
 #
+# @param dns_wait_timeout
+#   Proxmox only. Seconds to wait, after the VMs are built, for every node's
+#   name to resolve from the primary. The Proxmox provider relies on DHCP to
+#   register names in DNS, which can lag well behind the VMs coming up, and
+#   peadm needs the nodes to resolve each other. 0 skips the wait
+#
 # @param extra_terraform_vars
 #   The pecdm plan does not expose all variables defined by supporting Terraform
 #   modules, if others are needed then pass a hash
@@ -139,6 +145,7 @@ plan pecdm::provision(
   Array                                         $dns_alt_names          = [],
   Hash                                          $extra_peadm_params     = {},
   Hash                                          $extra_terraform_vars   = {},
+  Integer[0]                                    $dns_wait_timeout       = 1800,
   Boolean                                       $replica                = false,
   Boolean                                       $stage                  = false,
   Boolean                                       $write_inventory        = true,
@@ -199,7 +206,8 @@ plan pecdm::provision(
       windows_password       => $_windows_password,
       cloud_region           => $cloud_region,
       native_ssh             => $native_ssh,
-      extra_terraform_vars   => $extra_terraform_vars
+      extra_terraform_vars   => $extra_terraform_vars,
+      dns_wait_timeout       => $dns_wait_timeout,
   })
 
   # Show provisioning results in verbose mode
