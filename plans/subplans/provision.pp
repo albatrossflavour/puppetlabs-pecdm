@@ -154,7 +154,7 @@ plan pecdm::subplans::provision(
       $_instance_image = $instance_image
     }
     if $windows_instance_image.is_a(String) {
-      $_windows_instance_image = { 'windows_instance_image' => $windows_instance_image, 'image_plan' => '' }
+      $_windows_instance_image = { 'instance_image' => $windows_instance_image, 'image_plan' => '' }
     } else {
       $_windows_instance_image = $windows_instance_image
     }

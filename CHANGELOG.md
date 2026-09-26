@@ -11,12 +11,14 @@ All notable changes to this project will be documented in this file.
 
 **Changes**
 
+- The provider Terraform modules now come from the albatrossflavour forks, upgraded to current providers: google 8.4.0 (from 3.68.0), aws 6.66.0 (from 5.20.1) and azurerm 5.7.0 (from 2.64.0), with hiera5 0.5.4 and random 3.9.1. See each module's CHANGELOG for the breaking changes handled and what is unverified without a cloud deploy
 - All dependencies are pinned in `bolt-project.yaml` and installed with `bolt module install`. The hand-written Puppetfile is gone, along with three modules pecdm never used (`bolt_shim`, which is deprecated, `apply_helpers` and `WhatsARanjit-node_manager`)
 - Provider Terraform modules install into `.modules/<provider>_pe_arch`. Terraform runs there with state passed explicitly, and state stays in `.terraform/<provider>_pe_arch`, so existing clusters keep their state and a module reinstall can't delete it
 - `pecdm::upgrade` provider detection no longer fails for providers that have never been deployed
 
 **Bugfixes**
 
+- Windows images on Azure were written to the Linux `instance_image` key, so every VM got the Windows image. A string `windows_instance_image` also rendered empty
 - README destroy examples pass `cloud_region` ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85), [#118](https://github.com/puppetlabs/puppetlabs-pecdm/pull/118))
 
 ## Release 0.1.0

@@ -10,14 +10,14 @@ modules:
   - name: puppetlabs-terraform
     version_requirement: 0.8.0
   - name: google_pe_arch
-    git: https://github.com/puppetlabs/terraform-google-pe_arch.git
-    ref: 5772aebc633f72acb031d6c4b5f786e99a451a65
+    git: https://github.com/albatrossflavour/terraform-google-pe_arch.git
+    ref: 6ba92b165a6619be282ba987f56c6e0ab4099b40
     resolve: false
   - name: aws_pe_arch
-    git: https://github.com/puppetlabs/terraform-aws-pe_arch.git
-    ref: e5a731c727e73e50d95020a0f2913f86f4ec9c1c
+    git: https://github.com/albatrossflavour/terraform-aws-pe_arch.git
+    ref: a58cfc74ec7a03d391aa5a6749b9672d9bba58e8
     resolve: false
   - name: azure_pe_arch
-    git: https://github.com/puppetlabs/terraform-azure-pe_arch.git
-    ref: 0c362beddede71a83e10f76e873d85da01d9acea
+    git: https://github.com/albatrossflavour/terraform-azure-pe_arch.git
+    ref: 8715cc3245ee499a2fad1ac72abeeb270847b899
     resolve: false
