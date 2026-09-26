@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 **Bugfixes**
 
+- `extra_terraform_vars` only handled flat values: a nested map failed to render, lists relied on a quote-swapping regex, and booleans were written as strings. Every value is now written as a JSON literal, which HCL accepts at any depth
 - Windows images on Azure were written to the Linux `instance_image` key, so every VM got the Windows image. A string `windows_instance_image` also rendered empty
 - README destroy examples pass `cloud_region` ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85), [#118](https://github.com/puppetlabs/puppetlabs-pecdm/pull/118))
 
