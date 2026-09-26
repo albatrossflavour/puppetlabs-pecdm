@@ -58,12 +58,12 @@ Types of things you'll be paying your cloud provider for
 #### Common Requirements
 * [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
 * [Git Installed](https://git-scm.com/downloads)
-* [Terraform Installed](https://www.terraform.io/downloads.html)
+* [Terraform Installed](https://developer.hashicorp.com/terraform/install). OpenTofu works if a `terraform` command resolves to `tofu`, because `puppetlabs-terraform` runs `terraform` by name
 
 ### Beginning with pecdm
 
 1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-pecdm.git && cd puppetlabs-pecdm`
-2. Install module dependencies: `bolt module install --no-resolve` (manually manages modules to take advantage of functionality that allows for additional content to be deployed that does not adhere to the Puppet Module packaging format, e.g. Terraform modules)
+2. Install module dependencies: `bolt module install`. Every dependency, including the provider Terraform modules, is pinned in `bolt-project.yaml`. The Terraform modules install into `.modules/<provider>_pe_arch`. Cluster state is kept separately in `.terraform/<provider>_pe_arch`, so reinstalling modules never touches it
 3. Run plan: `bolt plan run pecdm::provision project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
 4. Wait. This is best executed from a bastion host or alternatively, a fast connection with strong upload bandwidth
 
@@ -131,15 +131,15 @@ For more information about setting environment variables, please take a look at 
 
 #### Destroy GCP stack
 
-The number of options required are reduced when destroying a stack
+The number of options required are reduced when destroying a stack. Pass the same `cloud_region` used to provision it, or the destroy looks in the default region and fails ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85))
 
-`bolt plan run pecdm::destroy provider=google`
+`bolt plan run pecdm::destroy provider=google cloud_region=<region>`
 
 #### Destroy AWS stack
 
-The number of options required are reduced when destroying a stack
+The number of options required are reduced when destroying a stack. Pass the same `cloud_region` used to provision it, or the destroy looks in the default region and fails ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85))
 
-`bolt plan run pecdm::destroy provider=aws`
+`bolt plan run pecdm::destroy provider=aws cloud_region=<region>`
 
 ### Upgrading examples
 

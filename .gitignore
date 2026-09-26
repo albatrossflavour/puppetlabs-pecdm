@@ -27,3 +27,11 @@
 /spec/fixtures/litmus_inventory.yaml
 .modules
 .resource_types
+# Terraform state for provisioned clusters
+/.terraform/
+
+# Bolt run caches
+.plan_cache.json
+.task_cache.json
+.rerun.json
+bolt-debug.log

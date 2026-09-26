@@ -30,7 +30,7 @@ plan pecdm::subplans::deploy(
   String[1]                                     $compiler_pool_address,
   String[1]                                     $console_password,
   Enum['direct', 'bolthost']                    $download_mode        = 'direct',
-  String[1]                                     $version              = '2019.8.10',
+  String[1]                                     $version              = '2025.11.3',
   Array                                         $dns_alt_names        = [],
   Hash                                          $extra_peadm_params   = {},
 ) {

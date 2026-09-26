@@ -13,7 +13,8 @@ plan pecdm::subplans::destroy(
 ) {
   out::message("Destroying Puppet Enterprise deployment on ${provider}")
 
-  $tf_dir = ".terraform/${provider}_pe_arch"
+  $tf = pecdm::terraform_dirs($provider)
+  $tf_dir = $tf['code_dir']
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting a destroy
@@ -41,6 +42,7 @@ plan pecdm::subplans::destroy(
     # easily adaptable for use with multiple cloud providers
     run_plan('terraform::destroy',
       dir           => $tf_dir,
+      state         => $tf['state'],
       var_file      => $tfvars_file
     )
   }

@@ -120,7 +120,7 @@ plan pecdm::provision(
   Enum['xlarge', 'large', 'standard']           $architecture           = 'standard',
   Enum['development', 'production', 'user']     $cluster_profile        = 'development',
   Enum['direct', 'bolthost']                    $download_mode          = 'direct',
-  String[1]                                     $version                = '2019.8.10',
+  String[1]                                     $version                = '2025.11.3',
   Integer                                       $compiler_count         = 1,
   Optional[String[1]]                           $ssh_pub_key_file       = undef,
   Optional[String[1]]                           $console_password       = undef,  # lint:ignore:140chars Due to a bug with how bolt handles Optional Sensitive this can not be currently use

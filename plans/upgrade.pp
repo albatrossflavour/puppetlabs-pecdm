@@ -1,7 +1,7 @@
 # @summary Upgrade a pecdm provisioned cluster
 #
 plan pecdm::upgrade(
-  Peadm::Pe_version                        $version            = '2021.7.2',
+  Peadm::Pe_version                        $version            = '2025.11.3',
   Boolean                                  $native_ssh         = false,
   Enum['private', 'public']                $ssh_ip_mode        = 'public',
   Optional[Enum['google', 'aws', 'azure']] $provider           = undef,
@@ -12,12 +12,15 @@ plan pecdm::upgrade(
 
   if $provider {
     $_provider = $provider
-    $tf_dir = ".terraform/${_provider}_pe_arch"
   } else {
     $detected_provider = ['google', 'aws', 'azure'].map |String $provider| {
-      $tf_dir = ".terraform/${provider}_pe_arch"
-      $terraform_output = run_task('terraform::output', 'localhost', dir => $tf_dir).first
-      unless $terraform_output.value.empty {
+      $tf = pecdm::terraform_dirs($provider)
+      $terraform_output = run_task('terraform::output', 'localhost',
+        dir   => $tf['code_dir'],
+        state => $tf['state'],
+        '_catch_errors' => true,
+      ).first
+      if $terraform_output.ok and !$terraform_output.value.empty {
         $provider
       }
     }.peadm::flatten_compact()
@@ -27,8 +30,8 @@ plan pecdm::upgrade(
     }
 
     $_provider = $detected_provider[0]
-    $tf_dir = ".terraform/${_provider}_pe_arch"
   }
+  $tf_dir = pecdm::terraform_dirs($_provider)['state_dir']
 
   # A pretty basic target config that just ensures we'll SSH into linux hosts
   # with a specific user and properly escalate to the root user

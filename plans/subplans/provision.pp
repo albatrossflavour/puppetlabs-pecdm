@@ -160,8 +160,10 @@ plan pecdm::subplans::provision(
     }
   }
 
-  # Where r10k deploys our various Terraform modules for each cloud provider
-  $tf_dir = ".terraform/${provider}_pe_arch"
+  # Terraform code runs from .modules, state lives in .terraform
+  $tf = pecdm::terraform_dirs($provider)
+  $tf_dir = $tf['code_dir']
+  run_command("mkdir -p '${tf['state_dir']}'", 'localhost')
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
@@ -208,6 +210,7 @@ plan pecdm::subplans::provision(
     # easily adaptable for use with multiple cloud providers
     run_plan('terraform::apply',
       dir           => $tf_dir,
+      state         => $tf['state'],
       return_output => true,
       var_file      => $tfvars_file,
       refresh_state => $provider ? {
@@ -263,7 +266,7 @@ plan pecdm::subplans::provision(
   $inventory = ['server', 'psql', 'compiler', 'node', 'windows_node'].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
           '_plugin'        => 'terraform',
-          'dir'            => $tf_dir,
+          'dir'            => $tf['state_dir'],
           'resource_type'  => $provider ? {
             'google' => "google_compute_instance.${i}",
             'aws'    => "aws_instance.${i}",
