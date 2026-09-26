@@ -41,7 +41,8 @@ plan pecdm::upgrade(
         'user'           => $ssh_user,
         'host-key-check' => false,
         'run-as'         => 'root',
-        'tty'            => true,
+        # No TTY: it merges stderr into stdout, and peadm checks stderr (for
+        # example to detect a PE version without CA database storage)
       },
     },
   }

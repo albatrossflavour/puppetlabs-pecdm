@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 **Bugfixes**
 
+- SSH to nodes no longer forces a TTY. A TTY merges stderr into stdout, and peadm 3.38 reads stderr to tell whether PE predates CA database storage, so installs failed with "Could not confirm ... predates the CA database storage feature"
 - `console_password` is checked against PE 2025's default complexity rules (12+ characters, upper and lower case, a number and a special character) before anything is built. PE only enforces them at the very end of the install
 - `extra_terraform_vars` only handled flat values: a nested map failed to render, lists relied on a quote-swapping regex, and booleans were written as strings. Every value is now written as a JSON literal, which HCL accepts at any depth
 - Windows images on Azure were written to the Linux `instance_image` key, so every VM got the Windows image. A string `windows_instance_image` also rendered empty
