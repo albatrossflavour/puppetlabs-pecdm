@@ -54,10 +54,10 @@ windows_node_count      = <%= $windows_node_count %>
 <% } -%>
 <% unless $windows_instance_image == undef { -%>
   <% if $provider == 'azure' { -%>
-    instance_image  = "<%= $windows_instance_image['instance_image'] %>"
-    image_plan      = "<%= $windows_instance_image['image_plan'] %>"
+    windows_instance_image = "<%= $windows_instance_image['instance_image'] %>"
+    windows_image_plan     = "<%= $windows_instance_image['image_plan'] %>"
   <% } else { -%>
-    instance_image  = "<%= $widnwos_instance_image %>"
+    windows_instance_image = "<%= $windows_instance_image %>"
   <% } -%>
 <% } -%>
 <% unless $subnet == undef { -%>
