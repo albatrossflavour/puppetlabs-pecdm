@@ -16,7 +16,7 @@ mod 'puppetlabs/package', '4.0.0'
 mod 'puppetlabs/inifile', '6.5.0'
 mod 'proxmox_pe_arch',
   git: 'https://github.com/albatrossflavour/terraform-proxmox-pe_arch.git',
-  ref: '841dde122beacfde421e6f6357b4ec8f1dee0e3f'
+  ref: '07cb631b99add23170f9f117f7779ca5a71967d9'
 mod 'azure_pe_arch',
   git: 'https://github.com/albatrossflavour/terraform-azure-pe_arch.git',
   ref: '8715cc3245ee499a2fad1ac72abeeb270847b899'
