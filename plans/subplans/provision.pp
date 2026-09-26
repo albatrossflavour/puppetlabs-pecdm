@@ -61,8 +61,8 @@
 #   IPv4 address subnets that should have access to PE through firewall
 #
 # @param dns_wait_timeout
-#   Proxmox only. Seconds to wait, after the VMs are built, for every node's
-#   name to resolve from the primary. The Proxmox provider relies on DHCP to
+#   Proxmox only. Seconds to wait, after the VMs are built, for every node to
+#   resolve every other node's name to its address. The Proxmox provider relies on DHCP to
 #   register names in DNS, which can lag well behind the VMs coming up, and
 #   peadm needs the nodes to resolve each other. 0 skips the wait
 #
@@ -341,30 +341,46 @@ plan pecdm::subplans::provision(
       }
   } }.flatten
 
-  # Proxmox VMs get their names into DNS through DHCP registration, which can
-  # lag well behind the VMs themselves. peadm addresses nodes by name, so wait
-  # until the primary can resolve every node. getent exits non-zero while any
-  # name is missing. Cloud providers resolve internal names immediately.
+  # Proxmox VMs rely on something outside pecdm to put their names into DNS,
+  # which can lag well behind the VMs booting, and peadm addresses nodes by
+  # name. Wait until every node resolves every other node's name to that
+  # node's real address. A node's own name is no evidence: cloud-init maps it
+  # to loopback in /etc/hosts, so each node only checks the others.
   if $provider == 'proxmox' and $dns_wait_timeout > 0 {
-    $primary = get_target(getvar('inventory.server.0.name'))
-    $names   = $pecdm_targets.map |$t| { $t.name }.join(' ')
-    $interval = 15
-    wait_until_available($primary, wait_time => 300)
-    out::message("Waiting up to ${dns_wait_timeout}s for DNS to resolve: ${names}")
-    $resolved = range(0, $dns_wait_timeout / $interval).any |$attempt| {
-      $check = run_command("getent hosts ${names}", $primary, '_catch_errors' => true)
-      if $check.ok {
-        true
-      } else {
-        ctrl::sleep($interval)
-        false
+    if $pecdm_targets.length < 2 {
+      out::message('Single node deployment, so no node needs to resolve another. Skipping the DNS wait')
+    } else {
+      $check = @(CHECK)
+        fail=0
+        for pair in PAIRS; do
+          name="${pair%%=*}"; want="${pair#*=}"
+          got=$(getent ahostsv4 "$name" | awk 'NR==1 {print $1}')
+          [ "$got" = "$want" ] || { echo "$name"; fail=1; }
+        done
+        exit $fail
+        | CHECK
+      $checks = $pecdm_targets.map |$node| {
+        $pairs = $pecdm_targets.filter |$t| { $t.name != $node.name }.map |$t| { "${t.name}=${t.host}" }
+        [$node, $check.regsubst('PAIRS', $pairs.join(' '))]
       }
+      $interval = 15
+      wait_until_available($pecdm_targets, wait_time => 300)
+      out::message("Waiting up to ${dns_wait_timeout}s for every node to resolve the others by name")
+      $resolved = range(0, $dns_wait_timeout / $interval).any |$attempt| {
+        $results = $checks.map |$c| { run_command($c[1], $c[0], '_catch_errors' => true).first }
+        if $results.all |$r| { $r.ok } {
+          true
+        } else {
+          ctrl::sleep($interval)
+          false
+        }
+      }
+      unless $resolved {
+        $missing = $checks.map |$c| { run_command($c[1], $c[0], '_catch_errors' => true).first.value['stdout'].split('\n') }.flatten.unique.filter |$n| { !$n.empty } # lint:ignore:140chars
+        fail_plan("After ${dns_wait_timeout}s these names still don't resolve to their node's address: ${missing.join(', ')}. Check that something registers them in DNS, or raise dns_wait_timeout") # lint:ignore:140chars
+      }
+      out::message('Every node resolves every other node by name')
     }
-    unless $resolved {
-      $missing = run_command("for n in ${names}; do getent hosts \$n >/dev/null || echo \$n; done", $primary).first.value['stdout']
-      fail_plan("These names still don't resolve from the primary after ${dns_wait_timeout}s: ${missing.split('\n').join(', ')}. Check that DHCP registers them in DNS, or raise dns_wait_timeout") # lint:ignore:140chars
-    }
-    out::message('All node names resolve')
   }
 
   $results = {

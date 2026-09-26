@@ -80,8 +80,8 @@
 #   are needed then pass a hash
 #
 # @param dns_wait_timeout
-#   Proxmox only. Seconds to wait, after the VMs are built, for every node's
-#   name to resolve from the primary. The Proxmox provider relies on DHCP to
+#   Proxmox only. Seconds to wait, after the VMs are built, for every node to
+#   resolve every other node's name to its address. The Proxmox provider relies on DHCP to
 #   register names in DNS, which can lag well behind the VMs coming up, and
 #   peadm needs the nodes to resolve each other. 0 skips the wait
 #

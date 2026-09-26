@@ -144,7 +144,7 @@ bolt plan run pecdm::provision provider=proxmox architecture=large compiler_coun
   extra_terraform_vars='{"datastore_id": "ceph", "bridge": "vmbr1", "vlan_id": 6, "full_clone": false, "domain_name": "example.com"}'
 ```
 
-Set `domain_name` so the VMs get fully qualified names. After the VMs boot, pecdm waits (up to `dns_wait_timeout`, 30 minutes by default) until the primary can resolve every node's name, because peadm addresses the nodes by name. Something outside pecdm has to put those names into DNS, whether that's your DHCP server or a sync job reading the Proxmox API.
+Set `domain_name` so the VMs get fully qualified names. After the VMs boot, pecdm waits (up to `dns_wait_timeout`, 30 minutes by default) until every node resolves every other node's name to that node's address, because peadm addresses the nodes by name. Something outside pecdm has to put those names into DNS, whether that's your DHCP server or a sync job reading the Proxmox API.
 
 ### Destroying examples
 
