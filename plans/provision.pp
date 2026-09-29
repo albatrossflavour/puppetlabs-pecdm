@@ -22,6 +22,10 @@
 #   Path to the ssh public key file that will be passed to Terraform for
 #   granting access to instances over SSH
 #
+# @param ssh_private_key_file
+#   Private key Bolt uses to reach the instances. Defaults to ssh_pub_key_file
+#   without its .pub suffix
+#
 # @param console_password
 #   Initial admin user console password, if not provided you will be prompted to
 #   input one or accept an insecure default
@@ -129,6 +133,7 @@ plan pecdm::provision(
   String[1]                                     $version                = '2025.11.3',
   Integer                                       $compiler_count         = 1,
   Optional[String[1]]                           $ssh_pub_key_file       = undef,
+  Optional[String[1]]                           $ssh_private_key_file   = undef,
   Optional[String[1]]                           $console_password       = undef,  # lint:ignore:140chars Due to a bug with how bolt handles Optional Sensitive this can not be currently use
   Optional[Integer]                             $node_count             = undef,
   Optional[Variant[String[1],Hash]]             $instance_image         = undef,
@@ -206,6 +211,7 @@ plan pecdm::provision(
       cluster_profile        => $cluster_profile,
       compiler_count         => $compiler_count,
       ssh_pub_key_file       => $ssh_pub_key_file,
+      ssh_private_key_file   => $ssh_private_key_file,
       node_count             => $node_count,
       instance_image         => $instance_image,
       windows_node_count     => $windows_node_count,

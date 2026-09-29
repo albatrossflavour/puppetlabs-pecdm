@@ -7,6 +7,7 @@ plan pecdm::upgrade(
   Optional[Enum['google', 'aws', 'azure', 'proxmox']] $provider           = undef,
   Hash                                     $extra_peadm_params = {},
   String[1]                                $ssh_user           = $provider ? { 'aws' => 'ec2-user', 'proxmox' => 'pecdm', default => undef },
+  Optional[String[1]]                      $ssh_private_key_file = undef,
 ) {
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local' })
 
@@ -33,33 +34,9 @@ plan pecdm::upgrade(
   }
   $tf_dir = pecdm::terraform_dirs($_provider)['state_dir']
 
-  # A pretty basic target config that just ensures we'll SSH into linux hosts
-  # with a specific user and properly escalate to the root user
-  $_target_config = {
-    'config' => {
-      'ssh' => {
-        'user'           => $ssh_user,
-        'host-key-check' => false,
-        'run-as'         => 'root',
-        # No TTY: it merges stderr into stdout, and peadm checks stderr (for
-        # example to detect a PE version without CA database storage)
-      },
-    },
-  }
-
-  $native_ssh_config = {
-    'config' => {
-      'ssh' => {
-        'native-ssh'  => true,
-        'ssh-command' => 'ssh',
-      },
-    },
-  }
-
-  $target_config = $native_ssh ? {
-    true  => deep_merge($_target_config, $native_ssh_config),
-    false => $_target_config
-  }
+  # SSH target config for the Linux nodes, with the private key set explicitly
+  # so the operator's ~/.ssh/config can't pick a different one
+  $target_config = pecdm::ssh_target_config($ssh_user, $native_ssh, undef, $ssh_private_key_file)
 
   # Generate an inventory of freshly provisioned nodes using the parameters that
   # are appropriate based on which cloud provider we've chosen to use. Utilizes

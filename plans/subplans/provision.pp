@@ -15,6 +15,10 @@
 #   Path to the ssh public key file that will be passed to Terraform for
 #   granting access to instances over SSH
 #
+# @param ssh_private_key_file
+#   Private key Bolt uses to reach the instances. Defaults to ssh_pub_key_file
+#   without its .pub suffix
+#
 # @param node_count
 #   Number of Linux agent nodes to provision and enroll into deployment for testing
 #   and development
@@ -100,6 +104,7 @@ plan pecdm::subplans::provision(
   Enum['development', 'production', 'user']     $cluster_profile        = 'development',
   Integer                                       $compiler_count         = 1,
   Optional[String[1]]                           $ssh_pub_key_file       = undef,
+  Optional[String[1]]                           $ssh_private_key_file   = undef,
   Optional[Integer]                             $node_count             = undef,
   Optional[Variant[String[1],Hash]]             $instance_image         = undef,
   Optional[Integer]                             $windows_node_count     = undef,
@@ -242,33 +247,9 @@ plan pecdm::subplans::provision(
     )
   }
 
-  # A pretty basic target config that just ensures we'll SSH into linux hosts
-  # with a specific user and properly escalate to the root user
-  $_target_config = {
-    'config' => {
-      'ssh' => {
-        'user'           => $ssh_user,
-        'host-key-check' => false,
-        'run-as'         => 'root',
-        # No TTY: it merges stderr into stdout, and peadm checks stderr (for
-        # example to detect a PE version without CA database storage)
-      },
-    },
-  }
-
-  $native_ssh_config = {
-    'config' => {
-      'ssh' => {
-        'native-ssh'  => true,
-        'ssh-command' => 'ssh',
-      },
-    },
-  }
-
-  $target_config = $native_ssh ? {
-    true  => deep_merge($_target_config, $native_ssh_config),
-    false => $_target_config
-  }
+  # SSH target config for the Linux nodes, with the private key set explicitly
+  # so the operator's ~/.ssh/config can't pick a different one
+  $target_config = pecdm::ssh_target_config($ssh_user, $native_ssh, $ssh_pub_key_file, $ssh_private_key_file)
 
   $windows_target_config = {
     'config' => {
