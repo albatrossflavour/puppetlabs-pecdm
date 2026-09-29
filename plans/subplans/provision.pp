@@ -193,9 +193,10 @@ plan pecdm::subplans::provision(
   # 0700: state and the saved tfvars both hold secrets
   run_command("mkdir -p '${tf['state_dir']}' && chmod 700 '${tf['state_dir']}'", 'localhost')
 
-  # Ensure the Terraform project directory has been initialized ahead of
-  # attempting an apply
-  run_task('terraform::initialize', 'localhost', dir => $tf_dir)
+  # Initialise ahead of an apply. Always run init rather than
+  # terraform::initialize, which skips any directory that already has a
+  # .terraform and so misses submodules and providers added by a new module pin
+  run_command("cd '${tf_dir}' && terraform init -input=false -no-color", 'localhost')
 
   # Constructs a tfvars file to be used by Terraform
   $tfvars = epp('pecdm/tfvars.epp', {

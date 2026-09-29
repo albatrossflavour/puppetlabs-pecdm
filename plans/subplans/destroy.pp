@@ -16,9 +16,10 @@ plan pecdm::subplans::destroy(
   $tf = pecdm::terraform_dirs($provider)
   $tf_dir = $tf['code_dir']
 
-  # Ensure the Terraform project directory has been initialized ahead of
-  # attempting a destroy
-  run_task('terraform::initialize', 'localhost', dir => $tf_dir)
+  # Initialise ahead of a destroy. Always run init rather than
+  # terraform::initialize, which skips any directory that already has a
+  # .terraform and so misses submodules and providers added by a new module pin
+  run_command("cd '${tf_dir}' && terraform init -input=false -no-color", 'localhost')
 
   # file::exists and file::read treat a relative path as a module path
   $vars_file = file::join(system::env('PWD'), $tf['vars_file'])
