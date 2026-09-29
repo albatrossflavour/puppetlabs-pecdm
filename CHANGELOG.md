@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 - SSH to nodes no longer forces a TTY. A TTY merges stderr into stdout, and peadm 3.38 reads stderr to tell whether PE predates CA database storage, so installs failed with "Could not confirm ... predates the CA database storage feature"
 - `console_password` is checked against PE 2025's default complexity rules (12+ characters, upper and lower case, a number and a special character) before anything is built. PE only enforces them at the very end of the install
+- Bolt now connects to nodes with the private key matching `ssh_pub_key_file` (the same path without `.pub`), or `ssh_private_key_file` if given. It previously set no key, so net-ssh took whatever `~/.ssh/config` said: a catch-all `IdentityFile` with `IdentitiesOnly yes` left it offering a key the nodes had never seen. `pecdm::upgrade` takes `ssh_private_key_file` too
 - `extra_terraform_vars` only handled flat values: a nested map failed to render, lists relied on a quote-swapping regex, and booleans were written as strings. Every value is now written as a JSON literal, which HCL accepts at any depth
 - Windows images on Azure were written to the Linux `instance_image` key, so every VM got the Windows image. A string `windows_instance_image` also rendered empty
 - README destroy examples pass `cloud_region` ([#85](https://github.com/puppetlabs/puppetlabs-pecdm/issues/85), [#118](https://github.com/puppetlabs/puppetlabs-pecdm/pull/118))
