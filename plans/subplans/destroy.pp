@@ -9,13 +9,9 @@
 #
 plan pecdm::subplans::destroy(
   Enum['google', 'aws', 'azure', 'proxmox']  $provider,
-  Optional[String[1]]             $cloud_region = $provider ? { 'azure' => 'westus2' ,'aws' => 'us-west-2', 'proxmox' => undef, default => 'us-west1' }
+  Optional[String[1]]             $cloud_region = undef
 ) {
   out::message("Destroying Puppet Enterprise deployment on ${provider}")
-
-  if $provider == 'proxmox' and !$cloud_region {
-    fail_plan('The Proxmox provider needs cloud_region set to a comma-separated list of Proxmox node names, for example cloud_region=pve1,pve2')
-  }
 
   $tf = pecdm::terraform_dirs($provider)
   $tf_dir = $tf['code_dir']
@@ -24,21 +20,21 @@ plan pecdm::subplans::destroy(
   # attempting a destroy
   run_task('terraform::initialize', 'localhost', dir => $tf_dir)
 
-  $vars_template = @(TFVARS)
-    <% unless $cloud_region == undef { -%>
-    region        = "<%= $cloud_region %>"
-    <% } -%>
-    <% if $provider in ['google', 'proxmox'] { -%>
-    destroy        = true
-    <% } -%>
-    # Required parameters which values are irrelevant on destroy
-    project          = "oppenheimer"
-    user             = "oppenheimer"
-    windows_user     = "oppenheimer"
-    windows_password = "oppenheimer"
-    |TFVARS
+  # file::exists and file::read treat a relative path as a module path
+  $vars_file = file::join(system::env('PWD'), $tf['vars_file'])
+  $saved_tfvars = file::exists($vars_file) ? {
+    true  => file::read($vars_file),
+    false => undef,
+  }
 
-  $tfvars = inline_epp($vars_template)
+  if $provider == 'proxmox' and !$saved_tfvars and !$cloud_region {
+    fail_plan('The Proxmox provider needs cloud_region set to a comma-separated list of Proxmox node names, for example cloud_region=pve1,pve2')
+  }
+  $_cloud_region = ($saved_tfvars or $cloud_region) ? {
+    true    => $cloud_region,
+    default => $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' },
+  }
+  $tfvars = pecdm::destroy_tfvars($provider, $_cloud_region, $saved_tfvars)
 
   pecdm::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a

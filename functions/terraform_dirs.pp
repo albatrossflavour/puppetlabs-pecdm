@@ -9,11 +9,13 @@
 # @param provider
 #   The cloud provider being deployed to
 #
-# @return [Hash] code_dir, state_dir and state (relative to code_dir)
+# @return [Hash] code_dir, state_dir, state (relative to code_dir) and
+#   vars_file, the tfvars saved at provision time for destroy to reuse
 function pecdm::terraform_dirs(String[1] $provider) >> Hash {
   {
     'code_dir'  => ".modules/${provider}_pe_arch",
     'state_dir' => ".terraform/${provider}_pe_arch",
     'state'     => "../../.terraform/${provider}_pe_arch/terraform.tfstate",
+    'vars_file' => ".terraform/${provider}_pe_arch/pecdm.tfvars",
   }
 }

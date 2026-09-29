@@ -190,7 +190,8 @@ plan pecdm::subplans::provision(
   # Terraform code runs from .modules, state lives in .terraform
   $tf = pecdm::terraform_dirs($provider)
   $tf_dir = $tf['code_dir']
-  run_command("mkdir -p '${tf['state_dir']}'", 'localhost')
+  # 0700: state and the saved tfvars both hold secrets
+  run_command("mkdir -p '${tf['state_dir']}' && chmod 700 '${tf['state_dir']}'", 'localhost')
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
@@ -231,6 +232,9 @@ plan pecdm::subplans::provision(
   #
   # with_tempfile_containing() custom function suggestion by Cas is brilliant
   # for this, works perfectly
+  # Saved beside the state so pecdm::destroy plans with exactly what was built
+  file::write(file::join(system::env('PWD'), $tf['vars_file']), $tfvars)
+
   $tf_apply = pecdm::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a
     # specific set of data via TF outputs that if replicated will make this plan
