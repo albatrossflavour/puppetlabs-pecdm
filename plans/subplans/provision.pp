@@ -374,6 +374,7 @@ plan pecdm::subplans::provision(
     'agent_inventory'         => $inventory['node'],
     'windows_agent_inventory' => $inventory['windows_node'],
     'compiler_pool_address'   => $tf_apply['pool']['value'],
+    'ssh_config'              => $target_config['config']['ssh'],
   }
 
   out::message("Finished provisioning infrastructure for a ${architecture} deployment of Puppet Enterprise")

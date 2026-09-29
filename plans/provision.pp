@@ -275,6 +275,7 @@ plan pecdm::provision(
         provider    => $provider,
         ssh_ip_mode => $ssh_ip_mode,
         native_ssh  => $native_ssh,
+        ssh_config  => $provisioned['ssh_config'],
     })
   }
 }

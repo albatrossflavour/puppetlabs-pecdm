@@ -1,6 +1,6 @@
 <%- | Enum['private', 'public']      $ssh_ip_mode,
       Enum['google', 'aws', 'azure', 'proxmox'] $provider,
-      Boolean                        $native_ssh = false,
+      Hash                           $ssh_config,
 | -%>
 <%- case $provider { -%>
   <%- 'google': { -%>
@@ -29,12 +29,9 @@
 config:
   transport: ssh
   ssh:
-    host-key-check: false
-    run-as: root
-    <%- if $native_ssh { -%>
-    native-ssh: true
-    ssh-command: 'ssh' 
-    <%- } -%>
+<%- $ssh_config.each |$key, $value| { -%>
+    <%= $key %>: <%= stdlib::to_json($value) %>
+<%- } -%>
 groups:
   - name: peadm_nodes
     targets:

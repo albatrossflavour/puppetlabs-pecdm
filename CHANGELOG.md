@@ -17,12 +17,14 @@ All notable changes to this project will be documented in this file.
 - All dependencies are pinned in `bolt-project.yaml` and installed with `bolt module install`. The hand-written Puppetfile is gone, along with three modules pecdm never used (`bolt_shim`, which is deprecated, `apply_helpers` and `WhatsARanjit-node_manager`)
 - Provider Terraform modules install into `.modules/<provider>_pe_arch`. Terraform runs there with state passed explicitly, and state stays in `.terraform/<provider>_pe_arch`, so existing clusters keep their state and a module reinstall can't delete it
 - `pecdm::upgrade` provider detection no longer fails for providers that have never been deployed
+- AWS module pinned at `63ce19e`: role-named certnames and split-horizon Route 53 DNS when `domain_name` is set (pass it, and optionally `public_zone_id`, through `extra_terraform_vars`), a security group that opens only operator ports to `firewall_allow`, encrypted `gp3` root volumes and IMDSv2. See the module's CHANGELOG
 
 **Bugfixes**
 
 - SSH to nodes no longer forces a TTY. A TTY merges stderr into stdout, and peadm 3.38 reads stderr to tell whether PE predates CA database storage, so installs failed with "Could not confirm ... predates the CA database storage feature"
 - `console_password` is checked against PE 2025's default complexity rules (12+ characters, upper and lower case, a number and a special character) before anything is built. PE only enforces them at the very end of the install
 - Bolt now connects to nodes with the private key matching `ssh_pub_key_file` (the same path without `.pub`), or `ssh_private_key_file` if given. It previously set no key, so net-ssh took whatever `~/.ssh/config` said: a catch-all `IdentityFile` with `IdentitiesOnly yes` left it offering a key the nodes had never seen. `pecdm::upgrade` takes `ssh_private_key_file` too
+- The `inventory.yaml` written after provisioning now carries the SSH user and private key provisioning connected with. It had neither, so every later `bolt` run against it tried the operator's local username and failed to authenticate
 - `pecdm::destroy` now plans with the variables the cluster was built with, which provision saves to `.terraform/<provider>_pe_arch/pecdm.tfvars` (directory mode 0700). It used placeholders, so on AWS it failed reading the default `~/.ssh/id_rsa.pub`, and a missing `cloud_region` fell back to `us-west-2` whatever region the cluster was in. A `cloud_region` that contradicts the saved one is refused. Clusters built before this change still get the placeholders
 - `extra_terraform_vars` only handled flat values: a nested map failed to render, lists relied on a quote-swapping regex, and booleans were written as strings. Every value is now written as a JSON literal, which HCL accepts at any depth
 - Windows images on Azure were written to the Linux `instance_image` key, so every VM got the Windows image. A string `windows_instance_image` also rendered empty
