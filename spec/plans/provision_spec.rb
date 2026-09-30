@@ -13,6 +13,9 @@ describe 'pecdm::provision' do
     allow_any_out_verbose
     expect_plan('pecdm::subplans::provision').be_called_times(1)
     expect_plan('pecdm::subplans::deploy').be_called_times(1)
+    # Stubbed: run for real it writes inventory.yaml into the project directory,
+    # replacing the one for whatever cluster is actually deployed
+    expect_plan('pecdm::utils::inventory_yaml').be_called_times(1)
     expect(run_plan('pecdm::provision', params)).to be_ok
   end
 end
