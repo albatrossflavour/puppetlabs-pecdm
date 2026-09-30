@@ -226,7 +226,7 @@ plan pecdm::subplans::provision(
   out::message("Starting infrastructure provisioning for a ${architecture} deployment of Puppet Enterprise")
 
   # TODO: make this print only when user specifies --verbose
-  out::verbose(".tfvars file content:\n\n${tfvars}\n")
+  out::verbose(".tfvars file content:\n\n${pecdm::redact($tfvars)}\n")
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue
