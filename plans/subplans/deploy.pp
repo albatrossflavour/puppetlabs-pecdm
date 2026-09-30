@@ -25,6 +25,9 @@
 #   The pecdm plan does not expose all parameters available to peadm, if others
 #   are needed then pass a hash
 #
+# @param console_address
+#   Address to show for the console at the end, from the provider's console output
+#
 plan pecdm::subplans::deploy(
   Hash                                          $inventory,
   String[1]                                     $compiler_pool_address,
@@ -33,6 +36,7 @@ plan pecdm::subplans::deploy(
   String[1]                                     $version              = '2025.11.3',
   Array                                         $dns_alt_names        = [],
   Hash                                          $extra_peadm_params   = {},
+  Optional[String[1]]                           $console_address      = undef,
 ) {
   out::message('Starting deployment of Puppet Enterprise')
 
@@ -69,7 +73,9 @@ plan pecdm::subplans::deploy(
   # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
   run_plan('peadm::install', $params + $extra_peadm_params)
 
-  $console = getvar('inventory.server.0.uri')
+  # The provider's console output where there is one: a name when the
+  # deployment has a domain. Otherwise the primary's SSH address
+  $console = pick($console_address, getvar('inventory.server.0.uri'))
   out::message('Finished deployment of Puppet Enterprise')
   out::message("Log into Puppet Enterprise Console: https://${console}")
 }

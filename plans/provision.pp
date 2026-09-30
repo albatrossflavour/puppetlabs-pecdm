@@ -241,6 +241,7 @@ plan pecdm::provision(
     run_plan('pecdm::subplans::deploy', {
         inventory              => $provisioned['pe_inventory'],
         compiler_pool_address  => $provisioned['compiler_pool_address'],
+        console_address        => $provisioned['console_address'],
         download_mode          => $download_mode,
         version                => $version,
         console_password       => $_console_password.unwrap,

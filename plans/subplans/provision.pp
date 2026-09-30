@@ -293,8 +293,10 @@ plan pecdm::subplans::provision(
                 default   => 'network_interface.0.access_config.0.nat_ip',
               },
             },
+            # internalDNS is the module's chosen name: <role>.<domain_name> when a
+            # domain is set, otherwise the instance's private DNS name
             'aws' => {
-              'name' => 'private_dns',
+              'name' => 'tags.internalDNS',
               'uri'  => $ssh_ip_mode ? {
                 'private' => 'private_ip',
                 default   => 'public_ip',
@@ -376,6 +378,7 @@ plan pecdm::subplans::provision(
     'windows_agent_inventory' => $inventory['windows_node'],
     'compiler_pool_address'   => $tf_apply['pool']['value'],
     'ssh_config'              => $target_config['config']['ssh'],
+    'console_address'         => $tf_apply['console']['value'],
   }
 
   out::message("Finished provisioning infrastructure for a ${architecture} deployment of Puppet Enterprise")
