@@ -22,7 +22,7 @@ mod 'azure_pe_arch',
   ref: '8715cc3245ee499a2fad1ac72abeeb270847b899'
 mod 'aws_pe_arch',
   git: 'https://github.com/albatrossflavour/terraform-aws-pe_arch.git',
-  ref: '75f0fca819cb954bb0bd605a98f0e96478855bf3'
+  ref: '83abe81f7465256f677d70a610c1fa9b6541482b'
 mod 'google_pe_arch',
   git: 'https://github.com/albatrossflavour/terraform-google-pe_arch.git',
   ref: '6ba92b165a6619be282ba987f56c6e0ab4099b40'
