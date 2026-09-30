@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - All dependencies are pinned in `bolt-project.yaml` and installed with `bolt module install`. The hand-written Puppetfile is gone, along with three modules pecdm never used (`bolt_shim`, which is deprecated, `apply_helpers` and `WhatsARanjit-node_manager`)
 - Provider Terraform modules install into `.modules/<provider>_pe_arch`. Terraform runs there with state passed explicitly, and state stays in `.terraform/<provider>_pe_arch`, so existing clusters keep their state and a module reinstall can't delete it
 - `pecdm::upgrade` provider detection no longer fails for providers that have never been deployed
-- AWS module pinned at `63ce19e`: role-named certnames and split-horizon Route 53 DNS when `domain_name` is set (pass it, and optionally `public_zone_id`, through `extra_terraform_vars`), a security group that opens only operator ports to `firewall_allow`, encrypted `gp3` root volumes and IMDSv2. See the module's CHANGELOG
+- AWS module pinned at `1e454f7`, which adds `operator_ports` (set it through `extra_terraform_vars`) to choose which ports `firewall_allow` can reach. Before that, `63ce19e` brought role-named certnames and split-horizon Route 53 DNS when `domain_name` is set (pass it, and optionally `public_zone_id`, through `extra_terraform_vars`), a security group that opens only operator ports to `firewall_allow`, encrypted `gp3` root volumes and IMDSv2. See the module's CHANGELOG
 
 **Bugfixes**
 
