@@ -15,7 +15,7 @@ modules:
     resolve: false
   - name: aws_pe_arch
     git: https://github.com/albatrossflavour/terraform-aws-pe_arch.git
-    ref: 1e454f726f305a2bae11d81bbc6beef17d79ab34
+    ref: 75f0fca819cb954bb0bd605a98f0e96478855bf3
     resolve: false
   - name: azure_pe_arch
     git: https://github.com/albatrossflavour/terraform-azure-pe_arch.git
